@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: nginx-demo
+  labels:
+    app: nginx-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-demo
+  template:
+    metadata:
+      labels:
+        app: nginx-demo
+    spec:
+      containers:
+        - name: nginx-demo
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html-content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: html-content
+          configMap:
+            name: nginx-demo-html
+  # Canary strategy for progressive delivery
+  strategy:
+    canary:
+      # Services for canary traffic splitting
+      canaryService: nginx-demo-canary
+      stableService: nginx-demo-stable
+      # Traffic routing via ALB (optional - can also use service mesh)
+      trafficRouting:
+        alb:
+          ingress: nginx-demo
+          rootService: nginx-demo-stable
+          annotationPrefix: alb.ingress.kubernetes.io
+      steps:
+        - setWeight: 25
+        - pause: {}
+        - setWeight: 50
+        - pause: { duration: 30s }
+        - setWeight: 75
+        - pause: { duration: 30s }
+        - setWeight: 100
