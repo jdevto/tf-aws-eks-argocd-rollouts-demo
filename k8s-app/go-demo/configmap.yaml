@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: go-demo-code
+  labels:
+    app: go-demo
+data:
+  main.go: |
+    package main
+    import (
+      "fmt"
+      "html"
+      "log"
+      "net/http"
+      "time"
+    )
+    const (
+      port = "8080"
+    )
+    func helloHandler(w http.ResponseWriter, r *http.Request) {
+      htmlContent := `<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Hello from Go Server!</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .container {
+                text-align: center;
+                padding: 3rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            }
+            h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
+            p {
+                font-size: 1.2rem;
+                margin: 0.5rem 0;
+            }
+            .info {
+                margin-top: 2rem;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(255,255,255,0.3);
+                font-size: 0.9rem;
+                opacity: 0.9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Hello from Go Server!</h1>
+            <p>Your Go-based web server is running on EKS!</p>
+            <div class="info">
+                <p>Powered by Go + Amazon EKS + Argo CD</p>
+                <p>Time: ` + html.EscapeString(time.Now().Format("2006-01-02 15:04:05 MST")) + `</p>
+            </div>
+        </div>
+    </body>
+    </html>`
+      w.Header().Set("Content-Type", "text/html; charset=utf-8")
+      fmt.Fprint(w, htmlContent)
+    }
+    func main() {
+      mux := http.NewServeMux()
+      mux.HandleFunc("/", helloHandler)
+      server := &http.Server{
+        Addr:         ":" + port,
+        Handler:      mux,
+        ReadTimeout:  15 * time.Second,
+        WriteTimeout: 15 * time.Second,
+        IdleTimeout:  60 * time.Second,
+      }
+      log.Printf("Go server starting on port %s", port)
+      log.Fatal(server.ListenAndServe())
+    }
+  go.mod: |
+    module go-server
+    go 1.23

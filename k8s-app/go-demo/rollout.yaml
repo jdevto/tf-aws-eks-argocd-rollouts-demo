@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: go-demo
+  labels:
+    app: go-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: go-demo
+  template:
+    metadata:
+      labels:
+        app: go-demo
+    spec:
+      containers:
+        - name: go-demo
+          image: golang:1.23-alpine
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              set -e
+              apk add --no-cache git
+              mkdir -p /app
+              cp /app-src/main.go /app/main.go
+              cp /app-src/go.mod /app/go.mod
+              cd /app
+              go mod download
+              go mod tidy
+              go run main.go
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: go-code
+              mountPath: /app-src
+              readOnly: true
+            - name: workspace
+              mountPath: /app
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: go-code
+          configMap:
+            name: go-demo-code
+        - name: workspace
+          emptyDir: {}
+  # Blue-Green strategy
+  strategy:
+    blueGreen:
+      activeService: go-demo
+      previewService: go-demo-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
