@@ -33,11 +33,12 @@ spec:
       # Services for canary traffic splitting
       canaryService: nginx-demo-canary
       stableService: nginx-demo-stable
-      # Traffic routing via ALB (optional - can also use service mesh)
+      # Traffic routing via ALB
       trafficRouting:
         alb:
           ingress: nginx-demo
           rootService: nginx-demo-stable
+          servicePort: 80
           annotationPrefix: alb.ingress.kubernetes.io
       steps:
         - setWeight: 25
