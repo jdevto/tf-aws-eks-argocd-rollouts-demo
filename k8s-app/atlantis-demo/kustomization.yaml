@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
   - configmap.yaml
-  - secret.yaml
+  # secret.yaml is excluded - create via kubectl or External Secrets
+  # See README.md for instructions
   - rollout.yaml
   - service.yaml
   - service-preview.yaml

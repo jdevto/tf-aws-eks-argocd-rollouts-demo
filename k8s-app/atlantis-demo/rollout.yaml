@@ -21,18 +21,19 @@ spec:
             - containerPort: 4141
               name: http
           env:
+            - name: ATLANTIS_DATA_DIR
+              value: "/atlantis-data"
             - name: ATLANTIS_REPO_ALLOWLIST
               valueFrom:
                 configMapKeyRef:
                   name: atlantis-demo-config
                   key: repo-allowlist
-            - name: ATLANTIS_DATA_DIR
-              value: "/atlantis-data"
             - name: ATLANTIS_REPO_CONFIG_JSON
               valueFrom:
                 configMapKeyRef:
                   name: atlantis-demo-config
                   key: repo-config.json
+            # Authentication Method 1: Personal Access Token (for personal repos)
             - name: ATLANTIS_GH_USER
               valueFrom:
                 secretKeyRef:
@@ -45,6 +46,21 @@ spec:
                   name: atlantis-demo-secrets
                   key: github-token
                   optional: true
+            # Authentication Method 2: GitHub App (RECOMMENDED for organizations)
+            - name: ATLANTIS_GH_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: atlantis-demo-secrets
+                  key: github-app-id
+                  optional: true
+            - name: ATLANTIS_GH_APP_KEY_FILE
+              value: "/atlantis-data/github-app-key.pem"
+            - name: ATLANTIS_GH_APP_INSTALLATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: atlantis-demo-secrets
+                  key: github-app-installation-id
+                  optional: true
             - name: ATLANTIS_GH_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
@@ -54,17 +70,13 @@ spec:
             # For testing without GitHub integration
             - name: ATLANTIS_CHECKOUT_STRATEGY
               value: "merge"
-            # Repo allowlist - can be set from configmap or override here
-            - name: ATLANTIS_REPO_ALLOWLIST
-              valueFrom:
-                configMapKeyRef:
-                  name: atlantis-demo-config
-                  key: repo-allowlist
-            # Note: Without GitHub credentials, Atlantis will start but show errors
-            # The UI will be accessible for testing the deployment
           volumeMounts:
             - name: atlantis-data
               mountPath: /atlantis-data
+            - name: github-app-key
+              mountPath: /atlantis-data/github-app-key.pem
+              subPath: github-app-key.pem
+              readOnly: true
           resources:
             requests:
               memory: "256Mi"
@@ -87,6 +99,13 @@ spec:
       volumes:
         - name: atlantis-data
           emptyDir: {}
+        - name: github-app-key
+          secret:
+            secretName: atlantis-demo-secrets
+            items:
+              - key: github-app-key
+                path: github-app-key.pem
+                optional: true
   # Blue-Green strategy
   strategy:
     blueGreen:

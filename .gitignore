@@ -19,12 +19,21 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+*tfplan*
+
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
 
-# Ignore kubeconfig files created by Terraform
+# Kubeconfig files
 .terraform-kubeconfig-*
 
-# Ignore backup files
-*.backup
+# Secrets - never commit actual secrets
+**/secret.yaml
+!**/secret.yaml.example
+**/*secret*.yaml
+!**/*secret*.yaml.example
