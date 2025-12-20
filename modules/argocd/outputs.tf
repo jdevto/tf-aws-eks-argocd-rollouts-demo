@@ -12,20 +12,28 @@ output "argocd_username" {
 }
 
 output "argocd_password" {
-  value       = try(nonsensitive(base64decode(data.kubernetes_secret.argocd_admin.data["password"])), null)
+  value = try(
+    base64decode(data.kubernetes_secret.argocd_admin.data["password"]),
+    "Password not available yet. Run: kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
+  )
   sensitive   = false
   description = "ArgoCD admin password"
 }
 
 output "argocd_server_url" {
-  value = try(
-    length(data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress) > 0 ? (
-      try(
-        "http://${data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress[0].hostname}",
-        "http://${data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress[0].ip}"
-      )
-    ) : null,
-    null
+  value = coalesce(
+    # Try to get from Ingress status first
+    try(
+      length(data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress) > 0 ? (
+        try(
+          "http://${data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress[0].hostname}",
+          "http://${data.kubernetes_ingress_v1.argocd_server.status[0].load_balancer[0].ingress[0].ip}"
+        )
+      ) : null,
+      null
+    ),
+    # Fallback message when Ingress status is not populated
+    "ALB URL not in Ingress status yet. Run: aws elbv2 describe-load-balancers --region ${var.aws_region} --query 'LoadBalancers[?contains(LoadBalancerName, `k8s-argocd`)].DNSName' --output text"
   )
-  description = "ArgoCD server ALB URL (HTTP, insecure mode enabled)"
+  description = "ArgoCD server ALB URL (HTTP, insecure mode enabled). If showing a command, Ingress status is not populated yet."
 }

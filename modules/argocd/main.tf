@@ -36,6 +36,39 @@ resource "helm_release" "argocd" {
           "application.types" = "rollout.argoproj.io"
           "server.insecure"   = "true"
         }
+        resourceCustomizations = {
+          "argoproj.io/Rollout" = {
+            health = {
+              lua = <<-EOT
+                hs = {}
+                if obj.status ~= nil then
+                  if obj.status.phase ~= nil and obj.status.phase == "Healthy" then
+                    hs.status = "Healthy"
+                    hs.message = "Rollout is healthy"
+                    return hs
+                  end
+                  if obj.status.conditions ~= nil then
+                    for i, condition in ipairs(obj.status.conditions) do
+                      if condition.type == "Healthy" and condition.status == "True" then
+                        hs.status = "Healthy"
+                        hs.message = condition.message
+                        return hs
+                      end
+                      if condition.type == "Completed" and condition.status == "True" then
+                        hs.status = "Healthy"
+                        hs.message = "Rollout completed"
+                        return hs
+                      end
+                    end
+                  end
+                end
+                hs.status = "Progressing"
+                hs.message = "Rollout is progressing"
+                return hs
+              EOT
+            }
+          }
+        }
       }
     })
   ]
@@ -126,6 +159,15 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: Ingress
+      jsonPointers:
+        - /status
+    - group: argoproj.io
+      kind: Rollout
+      jsonPointers:
+        - /status/conditions
 YAML
     EOT
   }
@@ -193,6 +235,15 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: Ingress
+      jsonPointers:
+        - /status
+    - group: argoproj.io
+      kind: Rollout
+      jsonPointers:
+        - /status/conditions
 YAML
     EOT
   }
