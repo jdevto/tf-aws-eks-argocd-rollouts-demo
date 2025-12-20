@@ -47,6 +47,8 @@ kubectl patch rollout nginx-demo --type=json -p='[{"op": "replace", "path": "/sp
 1. **New ReplicaSet Created**: Argo Rollouts creates a new ReplicaSet with the new image
 2. **25% Traffic**: ALB routes 25% of traffic to canary pods, 75% to stable pods
 3. **Pause**: Rollout pauses for manual verification (or automatic after duration)
+   - **To resume after verification**: Run `kubectl argo rollouts resume nginx-demo`
+   - Or use ArgoCD UI: Click on the Rollout → Click "Resume" button
 4. **50% Traffic**: If healthy, traffic increases to 50%
 5. **75% Traffic**: Traffic increases to 75%
 6. **100% Traffic**: Full traffic shift to new version
@@ -147,7 +149,37 @@ curl http://localhost:8081   # Canary version
 
 ## Manual Control
 
-### Pause the Rollout
+### Resume After Manual Verification
+
+**When the rollout pauses at a step (like at 25% traffic), you need to manually resume it to continue:**
+
+**Via kubectl (Recommended):**
+
+```bash
+# Resume the rollout to continue to next step
+kubectl argo rollouts resume nginx-demo
+
+# Verify it's resuming
+kubectl get rollout nginx-demo -w
+```
+
+**Via ArgoCD UI:**
+
+1. Go to the `nginx-demo` application in ArgoCD
+2. Click on the Rollout resource (the one showing "Suspended" status)
+3. Look for the "Resume" button in the actions menu
+4. Click "Resume" to continue the deployment
+
+**Via kubectl patch:**
+
+```bash
+# Alternative method using kubectl patch
+kubectl patch rollout nginx-demo --type=merge -p='{"spec":{"paused":false}}'
+```
+
+### Pause the Rollout (if needed)
+
+If you need to pause the rollout manually:
 
 ```bash
 # Pause at current step
@@ -155,16 +187,6 @@ kubectl argo rollouts pause nginx-demo
 
 # Or via patch
 kubectl patch rollout nginx-demo --type=merge -p='{"spec":{"paused":true}}'
-```
-
-### Resume the Rollout
-
-```bash
-# Resume from pause
-kubectl argo rollouts resume nginx-demo
-
-# Or via patch
-kubectl patch rollout nginx-demo --type=merge -p='{"spec":{"paused":false}}'
 ```
 
 ### Retry Failed Step
@@ -215,18 +237,29 @@ kubectl set image rollout/nginx-demo nginx-demo=nginx:stable
    kubectl logs -l app=nginx-demo --tail=50
    ```
 
-4. **Verify health** (if paused):
+4. **Verify health** (when paused at 25%):
 
    ```bash
-   # Test canary version
+   # Test canary version via port-forward
    kubectl port-forward svc/nginx-demo-canary 8080:80
    curl http://localhost:8080
+
+   # Or test via ALB (25% of requests will hit canary)
+   ALB_URL=$(kubectl get ingress nginx-demo -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+   curl http://$ALB_URL/
+
+   # Check metrics, logs, errors
+   kubectl logs -l app=nginx-demo --tail=50
    ```
 
-5. **Resume if healthy**:
+5. **Resume to continue** (after verification):
 
    ```bash
+   # Resume the rollout to proceed to 50% traffic
    kubectl argo rollouts resume nginx-demo
+
+   # Watch it progress
+   kubectl get rollout nginx-demo -w
    ```
 
 6. **Monitor progression**: Watch as traffic increases 25% → 50% → 75% → 100%
