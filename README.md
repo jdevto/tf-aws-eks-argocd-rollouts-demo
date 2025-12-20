@@ -136,6 +136,14 @@ This project demonstrates:
 - **Features**: Preview service for testing before promotion
 - **Location**: `k8s-app/go-demo/`
 
+### atlantis-demo (Blue-Green Strategy)
+
+- **Strategy**: Blue-Green deployment
+- **Features**: Atlantis Terraform automation tool with preview service
+- **Location**: `k8s-app/atlantis-demo/`
+- **Note**: Requires GitHub token/webhook secret configuration for full functionality
+- **Location**: `k8s-app/go-demo/`
+
 ## Configuration
 
 ### Variables
