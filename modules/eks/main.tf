@@ -164,3 +164,49 @@ resource "aws_iam_role_policy_attachment" "aws_lb_controller_ec2" {
   role       = aws_iam_role.aws_lb_controller.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
+
+resource "aws_iam_role_policy" "aws_lb_controller_waf" {
+  name = "${var.cluster_name}-aws-lb-controller-waf"
+  role = aws_iam_role.aws_lb_controller.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "WAFv2Permissions"
+        Effect = "Allow"
+        Action = [
+          "wafv2:GetWebACL",
+          "wafv2:GetWebACLForResource",
+          "wafv2:AssociateWebACL",
+          "wafv2:DisassociateWebACL",
+          "wafv2:ListWebACLs"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "WAFRegionalPermissions"
+        Effect = "Allow"
+        Action = [
+          "waf-regional:GetWebACL",
+          "waf-regional:GetWebACLForResource",
+          "waf-regional:AssociateWebACL",
+          "waf-regional:DisassociateWebACL",
+          "waf-regional:ListWebACLs"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ShieldPermissions"
+        Effect = "Allow"
+        Action = [
+          "shield:GetSubscriptionState",
+          "shield:DescribeProtection",
+          "shield:CreateProtection",
+          "shield:DeleteProtection"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
