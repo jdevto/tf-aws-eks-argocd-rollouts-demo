@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: go-demo
-          image: golang:1.23-alpine
+          image: golang:1.24-alpine
           command: ["/bin/sh"]
           args:
             - -c
