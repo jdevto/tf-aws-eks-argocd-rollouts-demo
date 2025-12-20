@@ -9,10 +9,10 @@ data:
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Hello from EKS + Argo CD!</title>
+        <title>Hello from Nginx Server!</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -23,26 +23,38 @@ data:
             }
             .container {
                 text-align: center;
-                padding: 2rem;
+                padding: 3rem;
                 background: rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
+                border-radius: 15px;
                 backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             }
             h1 {
                 font-size: 3rem;
                 margin-bottom: 1rem;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             }
             p {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
                 margin: 0.5rem 0;
+            }
+            .info {
+                margin-top: 2rem;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(255,255,255,0.3);
+                font-size: 0.9rem;
+                opacity: 0.9;
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Hello from EKS + Argo CD!</h1>
-            <p>Your GitOps deployment is working!</p>
-            <p><small>Powered by Amazon EKS and Argo CD</small></p>
+            <h1>Hello from Nginx Server!</h1>
+            <p>Your Nginx-based web server is running on EKS!</p>
+            <div class="info">
+                <p>Powered by Nginx + Amazon EKS + Argo CD</p>
+                <p>Pod: ${POD_NAME}</p>
+            </div>
         </div>
     </body>
     </html>
