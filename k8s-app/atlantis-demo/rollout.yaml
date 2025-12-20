@@ -51,6 +51,17 @@ spec:
                   name: atlantis-demo-secrets
                   key: webhook-secret
                   optional: true
+            # For testing without GitHub integration
+            - name: ATLANTIS_CHECKOUT_STRATEGY
+              value: "merge"
+            # Repo allowlist - can be set from configmap or override here
+            - name: ATLANTIS_REPO_ALLOWLIST
+              valueFrom:
+                configMapKeyRef:
+                  name: atlantis-demo-config
+                  key: repo-allowlist
+            # Note: Without GitHub credentials, Atlantis will start but show errors
+            # The UI will be accessible for testing the deployment
           volumeMounts:
             - name: atlantis-data
               mountPath: /atlantis-data
