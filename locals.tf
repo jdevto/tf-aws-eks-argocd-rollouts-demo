@@ -1,7 +1,7 @@
 locals {
   tags = {
-    Name        = "test"
+    Name        = "test2"
     Environment = "dev"
-    Project     = "test"
+    Project     = "test2"
   }
 }

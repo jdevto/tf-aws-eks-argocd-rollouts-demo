@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "cluster_name" {
   type    = string
-  default = "test"
+  default = "test2"
 }
 
 variable "cluster_version" {
