@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: nginx-demo
-          image: nginx:1.26-alpine
+          image: nginx:1.25-alpine
           command: ["/bin/sh"]
           args:
             - -c
