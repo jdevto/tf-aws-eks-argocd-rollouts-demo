@@ -22,5 +22,5 @@ variable "repo_url" {
 variable "target_revision" {
   description = "Git revision Argo CD should track (branch, tag, or commit SHA)."
   type        = string
-  default     = "main"
+  default     = "test"
 }
